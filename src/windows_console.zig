@@ -13,7 +13,7 @@ const Level = enum {
     bad,
 };
 
-const Console = struct {
+pub const Console = struct {
     /// The handle to the console
     console_handle: stream.WindowsConsoleHandler,
 
