@@ -5,26 +5,21 @@ const File = std.fs.File;
 
 const zwin = @import("zigwin32").everything;
 
-const CONSOLE_MODE = zwin.CONSOLE_MODE;
-fn getSaneMode() CONSOLE_MODE {
-    return CONSOLE_MODE.ENABLE_VIRTUAL_TERMINAL_INPUT | CONSOLE_MODE.ENABLE_AUTO_POSITION;
-}
-
 pub const WindowsConsoleStream = struct {
     const Self = @This();
 
     /// The handle to the console
     handle: win.HANDLE,
 
-    pub const capable_io_mode = std.io.default_mode;
-    pub const intended_io_mode = std.io.default_mode;
+    capable_io_mode: std.io.ModeOverride = std.io.default_mode,
+    intended_io_mode: std.io.ModeOverride = std.io.default_mode,
 
-    pub fn init(handle: win.HANDLE) Self {
+    pub fn init(handle: zwin.HANDLE) Self {
         var self = Self{
             .handle = handle,
         };
 
-        _ = zwin.SetConsoleMode(self.handle, zwin.getSaneMode());
+        _ = zwin.SetConsoleMode(self.handle, zwin.ENABLE_VIRTUAL_TERMINAL_INPUT);
         return self;
     }
 
