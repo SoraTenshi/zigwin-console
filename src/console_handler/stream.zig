@@ -19,6 +19,7 @@ pub const WindowsConsoleStream = struct {
             .handle = handle,
         };
 
+        // Enable the option for ANSI Escape sequences
         _ = zwin.SetConsoleMode(self.handle, zwin.ENABLE_VIRTUAL_TERMINAL_INPUT);
         return self;
     }

@@ -1,3 +1,4 @@
+/// Make the whole library useable
 pub usingnamespace @import("src/windows_console.zig");
 
 test {

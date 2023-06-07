@@ -13,10 +13,17 @@ const Level = enum {
     bad,
 };
 
+/// The Console object, all the annoying parts are
 pub const Console = struct {
     /// The handle to the console
     console_handle: stream.WindowsConsoleStream,
 
+    /// Initializes (and allocates) a new windows console
+    ///
+    /// name: The Window-title of the Console
+    /// use_stdout_fallback: When `AllocConsole()` fails, this is most likely an indicator that
+    /// there already exists a console (e.g. you're controlling from a subprocess)
+    /// if you just want to share the same stdout handle as the host-process, just feed it `true`
     pub fn init(comptime name: [*:0]const u8, use_stdout_fallback: bool) !Console {
         var handle: ?zwin.HANDLE = null;
         const new_console = zwin.AllocConsole();
@@ -37,6 +44,11 @@ pub const Console = struct {
         _ = zwin.FreeConsole();
     }
 
+    /// Print an ANSI-escaped (for colours) string.
+    /// level takes either of those 3 values:
+    ///   - .info -> blue and marked with [*]
+    ///   - .good -> green and marked with [+]
+    ///   - .bad -> red and marked with [-]
     pub fn print(self: *Console, level: Level, comptime fmt: []const u8, args: anytype) IOError!void {
         return switch (level) {
             .info => printInfo(self, fmt, args),
