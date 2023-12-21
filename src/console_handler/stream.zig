@@ -15,7 +15,7 @@ pub const WindowsConsoleStream = struct {
     intended_io_mode: std.io.ModeOverride = std.io.default_mode,
 
     pub fn init(handle: zwin.HANDLE) Self {
-        var self = Self{
+        const self = Self{
             .handle = handle,
         };
 
