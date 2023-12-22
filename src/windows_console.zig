@@ -13,10 +13,19 @@ const Level = enum {
     bad,
 };
 
+const Color = enum(u16) {
+    red = 12,
+    blue = 11,
+    green = 10,
+    default = 8,
+};
+
 /// The Console object, all the annoying parts are
 pub const Console = struct {
     /// The handle to the console
     console_handle: stream.WindowsConsoleStream,
+    /// Whether to use ansi escape commands
+    use_ansi_escape: bool,
 
     /// Initializes (and allocates) a new windows console
     ///
@@ -24,7 +33,7 @@ pub const Console = struct {
     /// use_stdout_fallback: When `AllocConsole()` fails, this is most likely an indicator that
     /// there already exists a console (e.g. you're controlling from a subprocess)
     /// if you just want to share the same stdout handle as the host-process, just feed it `true`
-    pub fn init(comptime name: [*:0]const u8, use_stdout_fallback: bool) !Console {
+    pub fn init(comptime name: [*:0]const u8, use_stdout_fallback: bool, use_ansi_escape: bool) !Console {
         var handle: ?zwin.HANDLE = null;
         const new_console = zwin.AllocConsole();
         if (new_console == win.FALSE and use_stdout_fallback) {
@@ -37,6 +46,7 @@ pub const Console = struct {
 
         return Console{
             .console_handle = stream.WindowsConsoleStream.init(zwin.GetStdHandle(zwin.STD_OUTPUT_HANDLE)),
+            .use_ansi_escape = use_ansi_escape,
         };
     }
 
@@ -57,18 +67,43 @@ pub const Console = struct {
         };
     }
 
+    fn setConsoleAttribute(self: *Console, color: Color) void {
+        _ = zwin.SetConsoleTextAttribute(self.console_handle.handle, @intFromEnum(color));
+    }
+
     fn printGood(self: *Console, comptime fmt: []const u8, args: anytype) IOError!void {
         const writer = self.console_handle.getConsoleOut().writer();
-        return writer.print("\x1b[32m[+] \x1b[0m" ++ fmt, args) catch IOError.IOError;
+        if (self.use_ansi_escape) {
+            return writer.print("\x1b[32m[+] \x1b[0m" ++ fmt, args) catch IOError.IOError;
+        } else {
+            self.setConsoleAttribute(Color.green);
+            writer.print("[+] ", .{}) catch return IOError.IOError;
+            self.setConsoleAttribute(Color.default);
+            return writer.print(fmt, args) catch IOError.IOError;
+        }
     }
 
     fn printInfo(self: *Console, comptime fmt: []const u8, args: anytype) IOError!void {
         const writer = self.console_handle.getConsoleOut().writer();
-        return writer.print("\x1b[34m[*] \x1b[0m" ++ fmt, args) catch IOError.IOError;
+        if (self.use_ansi_escape) {
+            return writer.print("\x1b[34m[*] \x1b[0m" ++ fmt, args) catch IOError.IOError;
+        } else {
+            self.setConsoleAttribute(Color.blue);
+            writer.print("[*] ", .{}) catch return IOError.IOError;
+            self.setConsoleAttribute(Color.default);
+            return writer.print(fmt, args) catch IOError.IOError;
+        }
     }
 
     fn printBad(self: *Console, comptime fmt: []const u8, args: anytype) IOError!void {
         const writer = self.console_handle.getConsoleOut().writer();
-        return writer.print("\x1b[31m[-] \x1b[0m" ++ fmt, args) catch IOError.IOError;
+        if (self.use_ansi_escape) {
+            return writer.print("\x1b[31m[-] \x1b[0m" ++ fmt, args) catch IOError.IOError;
+        } else {
+            self.setConsoleAttribute(Color.red);
+            writer.print("[-] ", .{}) catch return IOError.IOError;
+            self.setConsoleAttribute(Color.default);
+            return writer.print(fmt, args) catch IOError.IOError;
+        }
     }
 };
