@@ -54,17 +54,50 @@ pub const Console = struct {
         _ = zwin.FreeConsole();
     }
 
-    /// Print an ANSI-escaped (for colours) string.
+    /// Prints an string.
     /// level takes either of those 3 values:
     ///   - .info -> blue and marked with [*]
     ///   - .good -> green and marked with [+]
     ///   - .bad -> red and marked with [-]
-    pub fn print(self: *Console, level: Level, comptime fmt: []const u8, args: anytype) IOError!void {
+    /// May return an error on failure
+    pub fn printChecked(self: *Console, level: Level, comptime fmt: []const u8, args: anytype) IOError!void {
         return switch (level) {
             .info => printInfo(self, fmt, args),
             .good => printGood(self, fmt, args),
             .bad => printBad(self, fmt, args),
         };
+    }
+
+    /// Prints an string with a newline at the end.
+    /// level takes either of those 3 values:
+    ///   - .info -> blue and marked with [*]
+    ///   - .good -> green and marked with [+]
+    ///   - .bad -> red and marked with [-]
+    /// May return an error on failure
+    pub fn printLineChecked(self: *Console, level: Level, comptime fmt: []const u8, args: anytype) IOError!void {
+        return self.printChecked(level, fmt ++ "\n", args);
+    }
+
+    /// Prints an string.
+    /// level takes either of those 3 values:
+    ///   - .info -> blue and marked with [*]
+    ///   - .good -> green and marked with [+]
+    ///   - .bad -> red and marked with [-]
+    pub fn print(self: *Console, level: Level, comptime fmt: []const u8, args: anytype) void {
+        switch (level) {
+            .info => printInfo(self, fmt, args) catch {},
+            .good => printGood(self, fmt, args) catch {},
+            .bad => printBad(self, fmt, args) catch {},
+        }
+    }
+
+    /// Prints an string with a newline at the end.
+    /// level takes either of those 3 values:
+    ///   - .info -> blue and marked with [*]
+    ///   - .good -> green and marked with [+]
+    ///   - .bad -> red and marked with [-]
+    pub fn printLine(self: *Console, level: Level, comptime fmt: []const u8, args: anytype) void {
+        return self.print(level, fmt ++ "\n", args);
     }
 
     fn setConsoleAttribute(self: *Console, color: Color) void {
