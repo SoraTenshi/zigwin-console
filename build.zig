@@ -6,8 +6,8 @@ pub fn build(b: *std.Build) void {
     _ = b.addModule(
         "zigwin-console",
         .{
-            .source_file = .{ .path = "console.zig" },
-            .dependencies = &.{
+            .root_source_file = .{ .path = "console.zig" },
+            .imports = &.{
                 .{ .name = "zigwin32", .module = zigwin32.module("zigwin32") },
             },
         },
