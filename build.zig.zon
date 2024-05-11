@@ -4,7 +4,7 @@
     .dependencies = .{
         .zigwin32 = .{
             .url = "https://github.com/marlersoft/zigwin32/archive/main.tar.gz",
-            .hash = "1220f8d5028adceac0c6fc8ef554d82efef49ca48913393e9c2f5d73a66b58c8aaad",
+            .hash = "122001853ff1c42814e8d5e65f630be7cc15a530e92253b2935bcc8ebe3fb402fdbb",
         },
     },
     .paths = .{""},
