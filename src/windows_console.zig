@@ -5,7 +5,9 @@ const IOError = error{IOError};
 
 const stream = @import("console_handler/stream.zig");
 
-const zwin = @import("zigwin32").everything;
+const zwin = @import("zigwin32");
+const HANDLE = zwin.foundation.HANDLE;
+const console = zwin.system.console;
 
 const Level = enum {
     info,
@@ -13,12 +15,21 @@ const Level = enum {
     bad,
 };
 
-const Color = enum(u16) {
-    red = 12,
-    blue = 11,
-    green = 10,
-    default = 8,
+const Color = union(enum) {
+    red,
+    blue,
+    green,
+    default,
 };
+
+fn colorToVariant(self: Color) console.CONSOLE_CHARACTER_ATTRIBUTES {
+    return switch (self) {
+        .red => console.FOREGROUND_RED,
+        .blue => console.FOREGROUND_BLUE,
+        .green => console.FOREGROUND_GREEN,
+        .default => console.CONSOLE_CHARACTER_ATTRIBUTES{},
+    };
+}
 
 /// The Console object, all the annoying parts are
 pub const Console = struct {
@@ -34,24 +45,24 @@ pub const Console = struct {
     /// there already exists a console (e.g. you're controlling from a subprocess)
     /// if you just want to share the same stdout handle as the host-process, just feed it `true`
     pub fn init(comptime name: [*:0]const u8, use_stdout_fallback: bool, use_ansi_escape: bool) !Console {
-        var handle: ?zwin.HANDLE = null;
-        const new_console = zwin.AllocConsole();
+        var handle: ?HANDLE = null;
+        const new_console = console.AllocConsole();
         if (new_console == win.FALSE and use_stdout_fallback) {
             handle = std.io.getStdOut().handle;
         } else if (new_console == win.FALSE and !use_stdout_fallback) {
             return error.NoNewConsole;
         }
 
-        _ = zwin.SetConsoleTitleA(name);
+        _ = console.SetConsoleTitleA(name);
 
         return Console{
-            .console_handle = stream.WindowsConsoleStream.init(zwin.GetStdHandle(zwin.STD_OUTPUT_HANDLE)),
+            .console_handle = stream.WindowsConsoleStream.init(console.GetStdHandle(console.STD_OUTPUT_HANDLE)),
             .use_ansi_escape = use_ansi_escape,
         };
     }
 
     pub fn deinit(_: Console) void {
-        _ = zwin.FreeConsole();
+        _ = console.FreeConsole();
     }
 
     /// Prints an string.
@@ -101,7 +112,7 @@ pub const Console = struct {
     }
 
     fn setConsoleAttribute(self: *Console, color: Color) void {
-        _ = zwin.SetConsoleTextAttribute(self.console_handle.handle, @intFromEnum(color));
+        _ = console.SetConsoleTextAttribute(self.console_handle.handle, colorToVariant(color));
     }
 
     fn printGood(self: *Console, comptime fmt: []const u8, args: anytype) IOError!void {
