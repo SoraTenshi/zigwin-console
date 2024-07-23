@@ -1,5 +1,6 @@
 /// Make the whole library useable
-pub usingnamespace @import("src/windows_console.zig");
+const win_console = @import("src/windows_console.zig");
+pub const Console = win_console.Console;
 
 test {
     const testing = @import("std").testing;
