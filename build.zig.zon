@@ -1,10 +1,11 @@
 .{
-    .name = "zigwin-console",
+    .name = .zigwin_console,
     .version = "0.0.0",
+    .fingerprint = 0x756c86762e9a4765,
     .dependencies = .{
         .zigwin32 = .{
-            .url = "git+https://github.com/marlersoft/zigwin32.git?ref=main#407a4c7b869ee3d10db520fdfae8b9faf9b2adb5",
-            .hash = "1220cc9c9028e20f4ec2ece1155ae3479acc1cc509f9ab93acb74e8f5bbf8eefd2a9",
+            .url = "git+https://github.com/marlersoft/zigwin32#7b434a47c2b85f395d8e5a6dca47af6a74422521",
+            .hash = "zigwin32-25.0.28-preview-AAAAALqY-wMp_N2rd4U4tD9LAxh0TbUPLKhzx6lngGQK",
         },
     },
     .paths = .{""},
